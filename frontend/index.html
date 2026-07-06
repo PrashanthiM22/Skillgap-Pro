@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillGap Pro+</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#02040a;--bg2:#070d1a;--surface:rgba(255,255,255,0.04);--surface2:rgba(255,255,255,0.08);--green:#00ff88;--green2:#00cc6a;--cyan:#00e5ff;--red:#ff4757;--orange:#ff9f43;--text:#e8f0fe;--muted:#6b7db3;--border:rgba(0,255,136,0.12);--glow:0 0 30px rgba(0,255,136,0.15);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;cursor:none;}
+.cursor{width:12px;height:12px;background:var(--green);border-radius:50%;position:fixed;z-index:9999;pointer-events:none;mix-blend-mode:screen;}
+.cursor-trail{width:30px;height:30px;border:1px solid rgba(0,255,136,0.4);border-radius:50%;position:fixed;z-index:9998;pointer-events:none;transition:all 0.15s ease;}
+.bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,255,136,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,0.03) 1px,transparent 1px);background-size:60px 60px;animation:gridMove 20s linear infinite;}
+@keyframes gridMove{to{background-position:60px 60px;}}
+.bg-orb{position:fixed;border-radius:50%;filter:blur(120px);z-index:0;pointer-events:none;}
+.orb1{width:600px;height:600px;background:rgba(0,255,136,0.06);top:-200px;left:-200px;animation:orbFloat 10s ease-in-out infinite;}
+.orb2{width:500px;height:500px;background:rgba(0,229,255,0.05);bottom:-150px;right:-150px;animation:orbFloat 14s ease-in-out infinite reverse;}
+@keyframes orbFloat{0%,100%{transform:translate(0,0);}50%{transform:translate(40px,40px);}}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:18px 50px;background:rgba(2,4,10,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--green);letter-spacing:-0.5px;}
+.logo span{color:var(--cyan);}
+.nav-links a{color:var(--muted);font-size:14px;margin-left:30px;text-decoration:none;font-family:'Space Mono',monospace;transition:color 0.3s;position:relative;}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--green);transform:scaleX(0);transition:transform 0.3s;}
+.nav-links a:hover{color:var(--green);}
+.nav-links a:hover::after,.nav-links a.nav-active::after{transform:scaleX(1);}
+.nav-links a.nav-active{color:var(--green);}
+.nav-user{display:flex;align-items:center;gap:12px;}
+.nav-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--cyan));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#000;cursor:pointer;}
+.nav-name{font-size:13px;font-family:'Space Mono',monospace;color:var(--green);}
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:1000;background:rgba(2,4,10,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:10px 0;}
+.mobile-nav-inner{display:flex;justify-content:space-around;}
+.mobile-nav a{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);text-decoration:none;font-size:10px;font-family:'Space Mono',monospace;padding:4px 10px;transition:color 0.3s;}
+.mobile-nav a span:first-child{font-size:22px;}
+.mobile-nav a.nav-active{color:var(--green);}
+@media(max-width:768px){.nav-links{display:none;}.mobile-nav{display:block;}.page{padding-bottom:100px;}}
+.page{display:none;min-height:100vh;padding:120px 50px 60px;position:relative;z-index:1;animation:fadeIn 0.5s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.modal-overlay{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#070d1a;border:1px solid rgba(0,255,136,0.2);border-radius:24px;padding:40px;width:100%;max-width:420px;}
+.modal-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:6px;}
+.modal-sub{color:var(--muted);font-size:14px;margin-bottom:30px;}
+.modal-tabs{display:flex;gap:4px;margin-bottom:28px;background:var(--surface);border-radius:10px;padding:4px;}
+.modal-tab{flex:1;padding:10px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:all 0.3s;}
+.modal-tab.active{background:linear-gradient(135deg,var(--green),var(--cyan));color:#000;font-weight:700;}
+.mfield{margin-bottom:16px;}
+.mfield label{display:block;font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;}
+.mfield input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(0,255,136,0.15);border-radius:10px;padding:12px 16px;color:white;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.3s;}
+.mfield input:focus{border-color:rgba(0,255,136,0.5);}
+.auth-btn{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--green),var(--cyan));color:#000;font-family:'Space Mono',monospace;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;transition:all 0.3s;}
+.auth-btn:hover{transform:translateY(-2px);}
+.auth-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.auth-err{color:var(--red);font-size:13px;margin-top:10px;text-align:center;font-family:'Space Mono',monospace;}
+.auth-ok{color:var(--green);font-size:13px;margin-top:10px;text-align:center;font-family:'Space Mono',monospace;}
+#home{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:180px;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);border-radius:100px;padding:6px 16px;font-size:12px;font-family:'Space Mono',monospace;color:var(--green);margin-bottom:30px;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,255,136,0.3);}50%{box-shadow:0 0 0 8px rgba(0,255,136,0);}}
+.hero-title{font-family:'Syne',sans-serif;font-size:clamp(48px,7vw,90px);font-weight:800;line-height:1;letter-spacing:-3px;margin-bottom:24px;}
+.hero-title .line1{background:linear-gradient(90deg,#fff,rgba(255,255,255,0.6));-webkit-background-clip:text;color:transparent;display:block;}
+.hero-title .line2{background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;color:transparent;display:block;}
+.hero-sub{color:var(--muted);font-size:18px;max-width:500px;line-height:1.7;margin-bottom:50px;}
+.hero-cta{display:flex;gap:15px;justify-content:center;flex-wrap:wrap;}
+.hero-stats{display:flex;gap:50px;margin-top:80px;border-top:1px solid var(--border);padding-top:40px;}
+.stat-item{text-align:center;}
+.stat-num{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--green);}
+.stat-label{color:var(--muted);font-size:13px;margin-top:4px;}
+.btn{padding:14px 28px;border:none;border-radius:12px;font-family:'Space Mono',monospace;font-size:13px;cursor:pointer;transition:all 0.3s;letter-spacing:0.5px;position:relative;overflow:hidden;}
+.btn::before{content:'';position:absolute;inset:0;background:rgba(255,255,255,0.1);transform:translateX(-100%);transition:transform 0.3s;}
+.btn:hover::before{transform:translateX(0);}
+.btn-primary{background:linear-gradient(135deg,var(--green),var(--cyan));color:#000;font-weight:700;box-shadow:0 0 25px rgba(0,255,136,0.3);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(0,255,136,0.5);}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,0.15);}
+.btn-ghost:hover{border-color:var(--green);color:var(--green);transform:translateY(-2px);}
+.btn-logout{background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.2);color:var(--red);padding:8px 16px;border-radius:8px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:all 0.3s;}
+.sec-header{margin-bottom:40px;}
+.sec-tag{font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;display:block;}
+.sec-title{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;letter-spacing:-1px;}
+.g3{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.glass{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px;backdrop-filter:blur(20px);transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
+.glass::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,255,136,0.03),transparent);opacity:0;transition:opacity 0.4s;}
+.glass:hover{border-color:rgba(0,255,136,0.3);transform:translateY(-5px);box-shadow:0 20px 60px rgba(0,0,0,0.4),var(--glow);}
+.glass:hover::before{opacity:1;}
+.course-icon{font-size:40px;margin-bottom:16px;display:block;}
+.course-card h3{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:8px;}
+.course-card p{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:20px;}
+.skill-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;}
+.pill{padding:4px 10px;border-radius:100px;font-size:11px;font-family:'Space Mono',monospace;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.15);color:var(--green);}
+.skill-check{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:12px;background:var(--surface);border:1px solid var(--border);margin-bottom:10px;cursor:pointer;transition:all 0.3s;}
+.skill-check:hover{border-color:rgba(0,255,136,0.3);background:var(--surface2);}
+.skill-check.checked{border-color:var(--green);background:rgba(0,255,136,0.06);}
+.skill-check label{display:flex;align-items:center;gap:12px;cursor:pointer;font-size:15px;width:100%;}
+.skill-check input[type=checkbox]{display:none;}
+.check-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--muted);display:flex;align-items:center;justify-content:center;transition:all 0.3s;flex-shrink:0;}
+.skill-check.checked .check-box{background:var(--green);border-color:var(--green);}
+.check-box::after{content:'✓';color:#000;font-size:13px;font-weight:bold;opacity:0;transition:opacity 0.2s;}
+.skill-check.checked .check-box::after{opacity:1;}
+.progress-bar{height:8px;background:rgba(255,255,255,0.06);border-radius:100px;overflow:hidden;margin:12px 0;}
+.progress-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--green),var(--cyan));transition:width 1s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 0 10px rgba(0,255,136,0.4);}
+.chart-wrap{width:100%;max-width:350px;margin:0 auto;padding:20px;}
+.intern-card{position:relative;}
+.intern-logo{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:16px;background:var(--surface2);}
+.match-ring{position:absolute;top:20px;right:20px;width:60px;height:60px;}
+.match-ring svg{transform:rotate(-90deg);}
+.match-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;font-family:'Space Mono',monospace;}
+.intern-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:6px;}
+.intern-role{color:var(--muted);font-size:14px;margin-bottom:16px;}
+.intern-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;}
+.intern-tag{padding:3px 10px;border-radius:100px;font-size:11px;font-family:'Space Mono',monospace;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--muted);}
+.intern-tag.match{background:rgba(0,255,136,0.08);border-color:rgba(0,255,136,0.2);color:var(--green);}
+/* FIX 1: Apply button — isolated from card hover, z-index, pointer-events all explicit */
+.apply-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--cyan));color:#000 !important;font-weight:700;font-size:13px;font-family:'Space Mono',monospace;text-decoration:none !important;border:none;cursor:pointer !important;transition:all 0.3s;width:100%;position:relative;z-index:10;pointer-events:all !important;}
+.apply-btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,255,136,0.3);}
+.intern-card .glass{overflow:visible;}
+.rfield{margin-bottom:12px;}
+.rfield label{display:block;font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;}
+.rfield input,.rfield textarea,.rfield select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:white;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;resize:vertical;}
+.rfield input:focus,.rfield textarea:focus,.rfield select:focus{border-color:rgba(0,255,136,0.5);}
+.resume-wrap{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start;}
+.resume-preview{background:#fff;color:#111;border-radius:16px;padding:40px;font-family:'DM Sans',sans-serif;box-shadow:0 40px 80px rgba(0,0,0,0.5);position:relative;}
+.resume-preview::before{content:'ATS Optimized ✓';position:absolute;top:-12px;right:20px;background:var(--green);color:#000;font-size:11px;font-weight:700;padding:4px 12px;border-radius:100px;font-family:'Space Mono',monospace;}
+.resume-header-block{border-bottom:3px solid #00cc6a;padding-bottom:16px;margin-bottom:20px;}
+.resume-name{font-size:28px;font-weight:800;color:#0a0a0a;letter-spacing:-1px;}
+.resume-role-tag{color:#00cc6a;font-size:14px;font-weight:600;margin-top:4px;}
+.resume-section{margin-bottom:18px;}
+.resume-section-title{font-size:12px;text-transform:uppercase;letter-spacing:2px;color:#00cc6a;font-weight:700;margin-bottom:10px;font-family:'Space Mono',monospace;}
+.resume-skill-list{display:flex;flex-wrap:wrap;gap:6px;}
+.resume-skill-chip{padding:4px 12px;background:#f0faf5;border:1px solid #b6e6d0;border-radius:100px;font-size:12px;color:#0a7a3e;font-weight:600;}
+.resume-item{margin-bottom:14px;}
+.resume-item-title{font-size:14px;font-weight:700;}
+.resume-item-sub{font-size:12px;color:#666;margin-bottom:6px;}
+.resume-score{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:16px;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:12px;}
+.resume-score-num{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;color:var(--green);}
+.download-btn{width:100%;padding:16px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--green),var(--cyan));color:#000;font-family:'Space Mono',monospace;font-size:14px;font-weight:700;cursor:pointer;margin-top:16px;transition:all 0.3s;}
+.download-btn:hover{transform:translateY(-2px);box-shadow:0 15px 40px rgba(0,255,136,0.3);}
+.dashboard-hero{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:30px;align-items:start;}
+.big-score{font-family:'Syne',sans-serif;font-size:80px;font-weight:800;background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;color:transparent;line-height:1;margin-bottom:8px;}
+.status-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:100px;font-family:'Space Mono',monospace;font-size:12px;margin-top:16px;}
+.badge-fire{background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);color:var(--green);}
+.badge-warn{background:rgba(255,159,67,0.1);border:1px solid rgba(255,159,67,0.3);color:var(--orange);}
+.badge-danger{background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);color:var(--red);}
+.dot{width:8px;height:8px;border-radius:50%;animation:blink 1s ease-in-out infinite;}
+.dot-green{background:var(--green);}.dot-orange{background:var(--orange);}.dot-red{background:var(--red);}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.skill-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;font-family:'Space Mono',monospace;font-size:12px;margin:4px;}
+.chip-done{background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);color:var(--green);}
+.chip-miss{background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);color:var(--red);}
+.roadmap-step{display:flex;gap:20px;padding:20px;border-radius:16px;background:var(--surface);border:1px solid var(--border);margin-bottom:12px;transition:all 0.3s;}
+.roadmap-step:hover{border-color:rgba(0,255,136,0.3);transform:translateX(5px);}
+.step-num{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--cyan));color:#000;font-weight:800;font-family:'Syne',sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;}
+.step-content h4{font-size:16px;font-weight:700;margin-bottom:6px;}
+.step-content p{color:var(--muted);font-size:14px;margin-bottom:10px;}
+.step-links{display:flex;gap:8px;flex-wrap:wrap;}
+.step-link{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:12px;font-family:'Space Mono',monospace;text-decoration:none;transition:all 0.3s;}
+.link-yt{background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.2);color:#ff4757;}
+.link-gfg{background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);color:var(--green);}
+.link-proj{background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);color:var(--cyan);}
+.empty{text-align:center;padding:60px;color:var(--muted);}
+.empty-icon{font-size:60px;margin-bottom:16px;display:block;opacity:0.4;}
+.empty h3{font-family:'Syne',sans-serif;font-size:24px;margin-bottom:8px;color:var(--text);}
+.neon-line{height:1px;background:linear-gradient(90deg,transparent,var(--green),transparent);margin:60px 0;opacity:0.3;}
+.save-banner{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 20px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);border-radius:12px;margin-bottom:24px;font-size:13px;color:var(--cyan);}
+.toast{position:fixed;bottom:30px;right:30px;z-index:9999;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 20px;font-family:'Space Mono',monospace;font-size:13px;backdrop-filter:blur(20px);transform:translateY(100px);opacity:0;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{border-color:rgba(0,255,136,0.4);color:var(--green);}
+.toast.info{border-color:rgba(0,229,255,0.4);color:var(--cyan);}
+.toast.error{border-color:rgba(255,71,87,0.4);color:var(--red);}
+.particle{position:fixed;width:3px;height:3px;border-radius:50%;background:var(--green);pointer-events:none;z-index:9997;animation:particleFly 1s ease-out forwards;}
+@keyframes particleFly{0%{transform:translate(0,0) scale(1);opacity:1;}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0;}}
+.typing::after{content:'|';animation:typingBlink 1s infinite;}
+@keyframes typingBlink{0%,100%{opacity:1;}50%{opacity:0;}}
+.profile-card{background:linear-gradient(135deg,rgba(0,255,136,0.05),rgba(0,229,255,0.05));border:1px solid rgba(0,255,136,0.2);border-radius:20px;padding:28px;margin-bottom:20px;display:flex;align-items:center;gap:20px;}
+.profile-avatar{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;color:#000;font-family:'Syne',sans-serif;flex-shrink:0;}
+.profile-name{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;}
+.profile-email{color:var(--muted);font-size:13px;font-family:'Space Mono',monospace;margin-top:4px;}
+.profile-badge{display:inline-block;padding:4px 12px;border-radius:100px;font-size:11px;font-family:'Space Mono',monospace;background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.2);color:var(--green);margin-top:8px;}
+/* Skill tag remove button */
+.skill-tag-wrap{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:100px;background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);color:var(--green);font-size:12px;font-family:'Space Mono',monospace;margin:3px;}
+.skill-tag-remove{cursor:pointer;color:var(--red);font-size:14px;line-height:1;}
+/* AI badge */
+.ai-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:100px;font-size:11px;font-family:'Space Mono',monospace;color:var(--cyan);margin-bottom:10px;}
+@media(max-width:768px){nav{padding:15px 20px;}.page{padding:100px 20px 40px;}.g2,.g3,.resume-wrap,.dashboard-hero{grid-template-columns:1fr;}.hero-title{font-size:40px;}.hero-stats{gap:20px;}}
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-trail" id="cursorTrail"></div>
+<div class="bg-grid"></div>
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+<div class="toast" id="toast"></div>
+
+<!-- AUTH MODAL — FIX 3: Pure localStorage auth, no server needed -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <h2 class="modal-title">Welcome 👋</h2>
+    <p class="modal-sub">Create an account to save your progress locally.</p>
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="switchTab('login')">Login</button>
+      <button class="modal-tab" onclick="switchTab('register')">Register</button>
+    </div>
+    <div id="loginForm">
+      <div class="mfield"><label>Email</label><input id="lEmail" type="email" placeholder="you@email.com"></div>
+      <div class="mfield"><label>Password</label><input id="lPass" type="password" placeholder="Your password"></div>
+      <button class="auth-btn" onclick="doLogin()" id="loginBtn">Login →</button>
+      <div id="loginMsg"></div>
+    </div>
+    <div id="registerForm" style="display:none;">
+      <div class="mfield"><label>Full Name</label><input id="rRegName" type="text" placeholder="Rahul Sharma"></div>
+      <div class="mfield"><label>Email</label><input id="rRegEmail" type="email" placeholder="you@email.com"></div>
+      <div class="mfield"><label>Password</label><input id="rRegPass" type="password" placeholder="Min 6 characters"></div>
+      <button class="auth-btn" onclick="doRegister()" id="registerBtn">Create Account →</button>
+      <div id="registerMsg"></div>
+    </div>
+    <p style="text-align:center;margin-top:20px;font-size:12px;">
+      <a href="javascript:void(0)" onclick="closeModal()" style="color:var(--muted);">Continue without account</a>
+    </p>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Skill<span>Gap</span> Pro+</div>
+  <div class="nav-links">
+    <a href="javascript:void(0)" onclick="showPage('courses')">Courses</a>
+    <a href="javascript:void(0)" onclick="showPage('dashboard')">Dashboard</a>
+    <a href="javascript:void(0)" onclick="showPage('internships')">Internships</a>
+    <a href="javascript:void(0)" onclick="showPage('resume')">Resume</a>
+  </div>
+  <div class="nav-user" id="navUser">
+    <button class="btn-ghost" style="padding:8px 16px;font-size:12px;" onclick="openModal()">Login / Register</button>
+  </div>
+</nav>
+<div class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <a href="javascript:void(0)" onclick="showPage('courses')" id="mnav-courses"><span>📚</span><span>Courses</span></a>
+    <a href="javascript:void(0)" onclick="showPage('dashboard')" id="mnav-dashboard"><span>📊</span><span>Dashboard</span></a>
+    <a href="javascript:void(0)" onclick="showPage('internships')" id="mnav-internships"><span>🏢</span><span>Jobs</span></a>
+    <a href="javascript:void(0)" onclick="showPage('resume')" id="mnav-resume"><span>📄</span><span>Resume</span></a>
+  </div>
+</div>
+
+<!-- HOME -->
+<section class="page active" id="home">
+  <div class="hero-badge"><span class="dot dot-green"></span>AI-Powered Career Platform — 2025</div>
+  <h1 class="hero-title"><span class="line1">Bridge Your</span><span class="line2 typing" id="heroTyping">Skill Gap.</span></h1>
+  <p class="hero-sub">Analyze your skills, get personalized learning paths, and land your dream internship at top MNCs.</p>
+  <div class="hero-cta">
+    <button class="btn btn-primary" onclick="showPage('courses')">🚀 Start Analyzing</button>
+    <button class="btn btn-ghost" onclick="openModal()">🔐 Login / Register</button>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-item"><div class="stat-num" data-count="500">0</div><div class="stat-label">Students Placed</div></div>
+    <div class="stat-item"><div class="stat-num" data-count="50">0</div><div class="stat-label">Partner Companies</div></div>
+    <div class="stat-item"><div class="stat-num" data-count="95">0</div><div class="stat-label">% Success Rate</div></div>
+  </div>
+</section>
+
+<!-- COURSES -->
+<section class="page" id="courses">
+  <div class="sec-header"><span class="sec-tag">▶ Step 01</span><h2 class="sec-title">Choose Your Path</h2></div>
+  <div class="g3" id="courseGrid"></div>
+  <div id="skillSelector" style="display:none;margin-top:50px;">
+    <div class="neon-line"></div>
+    <div class="sec-header"><span class="sec-tag">▶ Step 02</span><h2 class="sec-title" id="selectorTitle">Rate Your Skills</h2></div>
+    <div id="skillList"></div>
+    <button class="btn btn-primary" onclick="analyze()" style="margin-top:20px;">⚡ Analyze My Skills</button>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section class="page" id="dashboard">
+  <div class="sec-header"><span class="sec-tag">▶ Your Analytics</span><h2 class="sec-title">Skill Dashboard</h2></div>
+  <div id="dashboardEmpty" class="empty">
+    <span class="empty-icon">📊</span><h3>No Analysis Yet</h3><p>Select a course and analyze your skills first</p>
+    <button class="btn btn-primary" onclick="showPage('courses')" style="margin-top:20px;">Pick a Course</button>
+  </div>
+  <div id="dashboardContent" style="display:none;">
+    <div id="profileCardWrap"></div>
+    <div id="cloudSaveBanner" style="display:none;" class="save-banner"><span>☁️ Your progress is saved locally!</span></div>
+    <div class="dashboard-hero g2">
+      <div class="glass">
+        <div style="color:var(--muted);font-size:13px;">Overall Readiness</div>
+        <div class="big-score" id="bigScore">0%</div>
+        <div class="progress-bar"><div class="progress-fill" id="dashBar" style="width:0%"></div></div>
+        <div id="statusBadge"></div>
+        <p style="color:var(--muted);font-size:13px;margin-top:16px;" id="missingText"></p>
+      </div>
+      <div class="glass"><div class="chart-wrap"><canvas id="radarChart"></canvas></div></div>
+    </div>
+    <div class="g2" style="margin-bottom:20px;">
+      <div class="glass"><h3 style="font-family:'Syne',sans-serif;margin-bottom:16px;">✅ Your Skills</h3><div id="doneChips"></div></div>
+      <div class="glass"><h3 style="font-family:'Syne',sans-serif;margin-bottom:16px;">❌ Missing Skills</h3><div id="missChips"></div></div>
+    </div>
+    <div class="glass" style="margin-bottom:20px;">
+      <h3 style="font-family:'Syne',sans-serif;margin-bottom:20px;">📈 Market Demand Chart</h3>
+      <canvas id="barChart" height="80"></canvas>
+    </div>
+    <div class="neon-line"></div>
+    <div class="sec-header"><span class="sec-tag">▶ Learning Roadmap</span><h2 class="sec-title">Your Path Forward</h2></div>
+    <div id="roadmapSteps"></div>
+  </div>
+</section>
+
+<!-- INTERNSHIPS — FIX 1: Cards rebuilt so apply button works independently -->
+<section class="page" id="internships">
+  <div class="sec-header"><span class="sec-tag">▶ Opportunities</span><h2 class="sec-title">Curated Internships</h2></div>
+  <p style="color:var(--muted);font-size:14px;margin-bottom:30px;">Click <strong style="color:var(--green)">Apply</strong> to open the official careers page. Green tags = skills you already have!</p>
+  <div id="internGrid" class="g3"></div>
+</section>
+
+<!-- RESUME — FIX 2: All fields editable, AI generates from user input -->
+<section class="page" id="resume">
+  <div class="sec-header"><span class="sec-tag">▶ ATS-Ready</span><h2 class="sec-title">Resume Builder</h2></div>
+  <div id="resumeEmpty" class="empty">
+    <span class="empty-icon">📄</span><h3>No Skills Analyzed</h3><p>Complete a skill analysis first</p>
+    <button class="btn btn-primary" onclick="showPage('courses')" style="margin-top:20px;">Get Started</button>
+  </div>
+  <div id="resumeContent" style="display:none;">
+    <div class="glass resume-score" style="margin-bottom:24px;">
+      <div class="resume-score-num" id="resumeScore">0</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;margin-bottom:6px;">ATS Score</div>
+        <div class="progress-bar"><div class="progress-fill" id="atsBar" style="width:0%"></div></div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px;">Fill all fields to increase your score</div>
+      </div>
+      <button onclick="saveResumeLocally()" style="padding:10px 18px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--cyan));color:#000;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;">💾 Save</button>
+    </div>
+    <div class="resume-wrap">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- PERSONAL INFO -->
+        <div class="glass">
+          <h3 style="font-family:'Syne',sans-serif;font-size:16px;margin-bottom:16px;">👤 Personal Info</h3>
+          <div class="rfield"><label>Full Name *</label><input id="rName" type="text" placeholder="e.g. Rahul Sharma" oninput="liveResume()"></div>
+          <div class="rfield"><label>Job Title *</label><input id="rTitle" type="text" placeholder="e.g. Full Stack Developer" oninput="liveResume()"></div>
+          <div class="rfield"><label>Email *</label><input id="rEmail" type="email" placeholder="rahul@email.com" oninput="liveResume()"></div>
+          <div class="rfield"><label>Phone</label><input id="rPhone" type="text" placeholder="+91 98765 43210" oninput="liveResume()"></div>
+          <div class="rfield"><label>LinkedIn URL</label><input id="rLinkedin" type="text" placeholder="linkedin.com/in/yourname" oninput="liveResume()"></div>
+          <div class="rfield"><label>GitHub URL</label><input id="rGithub" type="text" placeholder="github.com/yourname" oninput="liveResume()"></div>
+        </div>
+
+        <!-- EDUCATION -->
+        <div class="glass">
+          <h3 style="font-family:'Syne',sans-serif;font-size:16px;margin-bottom:16px;">🎓 Education</h3>
+          <div class="rfield"><label>Degree & Branch *</label><input id="rDegree" type="text" placeholder="B.Tech — Computer Science" oninput="liveResume()"></div>
+          <div class="rfield"><label>University / College *</label><input id="rUniv" type="text" placeholder="JNTU Hyderabad" oninput="liveResume()"></div>
+          <div class="rfield"><label>Year</label><input id="rYear" type="text" placeholder="2022 – 2026" oninput="liveResume()"></div>
+          <div class="rfield"><label>CGPA / Percentage</label><input id="rCgpa" type="text" placeholder="8.4 / 10" oninput="liveResume()"></div>
+        </div>
+
+        <!-- SUMMARY — FIX 2a: AI generates from filled fields, user can override -->
+        <div class="glass">
+          <h3 style="font-family:'Syne',sans-serif;font-size:16px;margin-bottom:4px;">💬 Professional Summary</h3>
+          <div class="ai-badge">✨ AI Auto-generates from your info — or type your own below</div>
+          <div class="rfield"><textarea id="rSummary" rows="4" placeholder="Leave blank for AI to generate based on your name, title & skills — or write your own..." oninput="liveResume()"></textarea></div>
+          <button onclick="aiGenerateSummary()" style="padding:8px 16px;border:1px solid rgba(0,229,255,0.3);border-radius:8px;background:rgba(0,229,255,0.06);color:var(--cyan);font-size:12px;font-family:'Space Mono',monospace;cursor:pointer;margin-top:4px;">✨ Re-generate Summary</button>
+        </div>
+
+        <!-- SKILLS — FIX 2b: Editable tags + add custom -->
+        <div class="glass">
+          <h3 style="font-family:'Syne',sans-serif;font-size:16px;margin-bottom:4px;">🛠 Technical Skills</h3>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Auto-filled from your analysis. Click ✕ to remove. Add more below.</p>
+          <div id="skillTagsEdit" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;min-height:32px;"></div>
+          <div class="rfield" style="display:flex;gap:8px;align-items:center;">
+            <input id="rExtraSkillInput" type="text" placeholder="Type a skill & press Enter or click Add" style="flex:1;" onkeydown="if(event.key==='Enter'){addCustomSkill();}">
+            <button onclick="addCustomSkill()" style="padding:10px 16px;border:none;border-radius:8px;background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);color:var(--green);font-size:12px;font-family:'Space Mono',monospace;cursor:pointer;white-space:nowrap;">+ Add</button>
+          </div>
+        </div>
+
+        <!-- PROJECTS -->
+        <div class="glass">
+          <h3 style="font-family:'Syne',sans-serif;font-size:16px;margin-bottom:6px;">🚀 Projects</h3>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Edit the auto-generated projects or add your own.</p>
+          <div id="projectsEdit"></div>
+          <button class="btn btn-ghost" onclick="addProject()" style="margin-top:10px;width:100%;font-size:13px;">+ Add New Project</button>
+        </div>
+
+        <!-- ACHIEVEMENTS -->
+        <div class="glass">
+          <h3 style="font-family:'Syne',sans-serif;font-size:16px;margin-bottom:6px;">🏆 Achievements</h3>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">One per line. Leave blank for auto-filled defaults.</p>
+          <div class="rfield"><textarea id="rAchievements" rows="4" placeholder="Top 5% on LeetCode&#10;Won College Hackathon 2024&#10;Published npm package with 500+ downloads" oninput="liveResume()"></textarea></div>
+        </div>
+
+        <button class="download-btn" onclick="downloadResume()">⬇️ Download Resume (.txt)</button>
+        <button class="download-btn" onclick="printResume()" style="background:var(--surface2);color:white;border:1px solid var(--border);margin-top:8px;">🖨️ Print / Save as PDF</button>
+      </div>
+
+      <!-- LIVE PREVIEW -->
+      <div style="position:sticky;top:100px;align-self:start;">
+        <div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--muted);margin-bottom:8px;text-align:right;">LIVE PREVIEW — updates as you type ↓</div>
+        <div class="resume-preview" id="resumeDoc"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+// ══════════════════════════════════════════
+// FIX 3: LOCAL AUTH — no server needed
+// Users stored in localStorage under 'sgpUsers'
+// ══════════════════════════════════════════
+let currentUser = JSON.parse(localStorage.getItem('sgpUser')) || null;
+
+function getUsers() {
+  return JSON.parse(localStorage.getItem('sgpUsers') || '[]');
+}
+function saveUsers(users) {
+  localStorage.setItem('sgpUsers', JSON.stringify(users));
+}
+
+function doRegister() {
+  const btn = document.getElementById('registerBtn');
+  const msg = document.getElementById('registerMsg');
+  const name = document.getElementById('rRegName').value.trim();
+  const email = document.getElementById('rRegEmail').value.trim().toLowerCase();
+  const password = document.getElementById('rRegPass').value;
+
+  if (!name || !email || !password) { msg.className = 'auth-err'; msg.textContent = 'Please fill all fields.'; return; }
+  if (password.length < 6) { msg.className = 'auth-err'; msg.textContent = 'Password must be at least 6 characters.'; return; }
+
+  const users = getUsers();
+  if (users.find(u => u.email === email)) { msg.className = 'auth-err'; msg.textContent = 'Email already registered. Please login.'; return; }
+
+  btn.disabled = true; btn.textContent = 'Creating account...';
+  // Simulate slight delay for UX
+  setTimeout(() => {
+    const newUser = { id: Date.now().toString(), name, email, password, createdAt: new Date().toISOString() };
+    users.push(newUser);
+    saveUsers(users);
+    const safeUser = { id: newUser.id, name: newUser.name, email: newUser.email };
+    setUser(safeUser);
+    msg.className = 'auth-ok'; msg.textContent = '✅ Welcome ' + name + '!';
+    setTimeout(closeModal, 1000);
+    toast('🎉 Account created! Welcome, ' + name.split(' ')[0] + '!', 'success');
+    btn.disabled = false; btn.textContent = 'Create Account →';
+  }, 600);
+}
+
+function doLogin() {
+  const btn = document.getElementById('loginBtn');
+  const msg = document.getElementById('loginMsg');
+  const email = document.getElementById('lEmail').value.trim().toLowerCase();
+  const password = document.getElementById('lPass').value;
+
+  if (!email || !password) { msg.className = 'auth-err'; msg.textContent = 'Please enter email & password.'; return; }
+
+  btn.disabled = true; btn.textContent = 'Logging in...';
+  setTimeout(() => {
+    const users = getUsers();
+    const user = users.find(u => u.email === email && u.password === password);
+    if (!user) {
+      msg.className = 'auth-err'; msg.textContent = 'Invalid email or password.';
+      btn.disabled = false; btn.textContent = 'Login →'; return;
+    }
+    const safeUser = { id: user.id, name: user.name, email: user.email };
+    setUser(safeUser);
+    loadSavedProgress(user.id);
+    msg.className = 'auth-ok'; msg.textContent = '✅ Welcome back, ' + user.name.split(' ')[0] + '!';
+    setTimeout(closeModal, 900);
+    toast('👋 Welcome back, ' + user.name.split(' ')[0] + '!', 'success');
+    btn.disabled = false; btn.textContent = 'Login →';
+  }, 500);
+}
+
+function loadSavedProgress(userId) {
+  const saved = JSON.parse(localStorage.getItem('sgpProgress_' + userId) || '{}');
+  if (saved.selectedCourse) { selectedCourse = saved.selectedCourse; localStorage.setItem('sgpCourse', selectedCourse); }
+  if (saved.selectedSkills?.length) { selectedSkills = saved.selectedSkills; localStorage.setItem('sgpSkills', JSON.stringify(selectedSkills)); }
+  if (saved.analysisPercent) { analysisPercent = saved.analysisPercent; localStorage.setItem('sgpPercent', analysisPercent); }
+  if (saved.resumeData) {
+    const r = saved.resumeData;
+    const sv = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+    sv('rName', r.name); sv('rTitle', r.title); sv('rEmail', r.email); sv('rPhone', r.phone);
+    sv('rLinkedin', r.linkedin); sv('rGithub', r.github); sv('rDegree', r.degree);
+    sv('rUniv', r.university); sv('rYear', r.year); sv('rCgpa', r.cgpa);
+    sv('rSummary', r.summary); sv('rAchievements', r.achievements);
+    if (r.customSkills?.length) { customSkills = r.customSkills; }
+    if (r.projects?.length) { userProjects = r.projects; }
+  }
+}
+
+function saveProgressLocally() {
+  if (!currentUser) return;
+  const progress = { selectedCourse, selectedSkills, analysisPercent };
+  localStorage.setItem('sgpProgress_' + currentUser.id, JSON.stringify({ ...progress, ...(JSON.parse(localStorage.getItem('sgpProgress_' + currentUser.id) || '{}')) }));
+}
+
+function saveResumeLocally() {
+  if (!currentUser) { toast('⚠️ Login to save!', 'info'); return; }
+  const rd = {
+    name: document.getElementById('rName')?.value, title: document.getElementById('rTitle')?.value,
+    email: document.getElementById('rEmail')?.value, phone: document.getElementById('rPhone')?.value,
+    linkedin: document.getElementById('rLinkedin')?.value, github: document.getElementById('rGithub')?.value,
+    degree: document.getElementById('rDegree')?.value, university: document.getElementById('rUniv')?.value,
+    year: document.getElementById('rYear')?.value, cgpa: document.getElementById('rCgpa')?.value,
+    summary: document.getElementById('rSummary')?.value, achievements: document.getElementById('rAchievements')?.value,
+    customSkills, projects: userProjects
+  };
+  const existing = JSON.parse(localStorage.getItem('sgpProgress_' + currentUser.id) || '{}');
+  localStorage.setItem('sgpProgress_' + currentUser.id, JSON.stringify({ ...existing, resumeData: rd }));
+  toast('💾 Resume saved locally!', 'success');
+}
+
+function setUser(user) {
+  currentUser = user;
+  localStorage.setItem('sgpUser', JSON.stringify(user));
+  updateNavUser();
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('sgpUser');
+  updateNavUser();
+  toast('👋 Logged out.', 'info');
+}
+
+function updateNavUser() {
+  const nav = document.getElementById('navUser');
+  if (currentUser) {
+    const i = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    nav.innerHTML = `<div class="nav-avatar" title="${currentUser.email}">${i}</div><span class="nav-name">${currentUser.name.split(' ')[0]}</span><button class="btn-logout" onclick="logout()">Logout</button>`;
+  } else {
+    nav.innerHTML = `<button class="btn-ghost" style="padding:8px 16px;font-size:12px;" onclick="openModal()">Login / Register</button>`;
+  }
+}
+
+function openModal() { document.getElementById('authModal').classList.add('open'); }
+function closeModal() { document.getElementById('authModal').classList.remove('open'); }
+function switchTab(tab) {
+  document.querySelectorAll('.modal-tab').forEach((b, i) => b.classList.toggle('active', (tab === 'login' ? i === 0 : i === 1)));
+  document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let selectedCourse = '', selectedSkills = JSON.parse(localStorage.getItem('sgpSkills') || '[]'),
+    analysisPercent = parseInt(localStorage.getItem('sgpPercent')) || 0,
+    allCourses = {}, radarChartInst = null, barChartInst = null,
+    userProjects = [], customSkills = [];
+
+// cursor
+const cur = document.getElementById('cursor'), trail = document.getElementById('cursorTrail');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX - 6 + 'px'; cur.style.top = e.clientY - 6 + 'px';
+  setTimeout(() => { trail.style.left = e.clientX - 15 + 'px'; trail.style.top = e.clientY - 15 + 'px'; }, 80);
+});
+document.addEventListener('click', e => spawnParticles(e.clientX, e.clientY));
+function spawnParticles(x, y) {
+  for (let i = 0; i < 8; i++) {
+    const p = document.createElement('div'); p.className = 'particle';
+    const a = (i / 8) * Math.PI * 2, d = 30 + Math.random() * 40;
+    p.style.setProperty('--tx', Math.cos(a) * d + 'px'); p.style.setProperty('--ty', Math.sin(a) * d + 'px');
+    p.style.left = x + 'px'; p.style.top = y + 'px';
+    document.body.appendChild(p); setTimeout(() => p.remove(), 1000);
+  }
+}
+
+function toast(msg, type = 'success') {
+  const t = document.getElementById('toast'); t.textContent = msg;
+  t.className = 'toast ' + type + ' show'; setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.toggle('nav-active', a.getAttribute('onclick')?.includes("'" + id + "'")));
+  document.querySelectorAll('.mobile-nav a').forEach(a => a.classList.toggle('nav-active', a.id === 'mnav-' + id));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'internships') renderInternships();
+  if (id === 'resume') renderResume();
+}
+
+// ══════════════════════════════════════════
+// COURSES
+// ══════════════════════════════════════════
+const COURSES_FALLBACK = {
+  "Frontend Developer": { icon: "🎨", desc: "Build stunning web interfaces.", skills: ["HTML","CSS","JavaScript","React","TypeScript","Git"], resources: { "HTML": { yt: "https://www.youtube.com/results?search_query=HTML+complete+course", gfg: "https://www.geeksforgeeks.org/html-tutorial/", project: "https://www.frontendmentor.io" }, "CSS": { yt: "https://www.youtube.com/results?search_query=CSS+tutorial", gfg: "https://www.geeksforgeeks.org/css-tutorial/", project: "https://www.frontendmentor.io" }, "JavaScript": { yt: "https://www.youtube.com/results?search_query=JavaScript+tutorial", gfg: "https://www.geeksforgeeks.org/javascript/", project: "https://javascript30.com" }, "React": { yt: "https://www.youtube.com/results?search_query=React+tutorial", gfg: "https://www.geeksforgeeks.org/reactjs/", project: "https://react.dev" }, "TypeScript": { yt: "https://www.youtube.com/results?search_query=TypeScript+tutorial", gfg: "https://www.geeksforgeeks.org/typescript/", project: "https://www.typescriptlang.org" }, "Git": { yt: "https://www.youtube.com/results?search_query=Git+tutorial", gfg: "https://www.geeksforgeeks.org/git-tutorial/", project: "https://learngitbranching.js.org" } } },
+  "Backend Developer": { icon: "⚙️", desc: "Build robust APIs.", skills: ["Node.js","Express","MongoDB","SQL","REST API","Docker"], resources: { "Node.js": { yt: "https://www.youtube.com/results?search_query=nodejs+tutorial", gfg: "https://www.geeksforgeeks.org/nodejs/", project: "https://nodeschool.io" }, "Express": { yt: "https://www.youtube.com/results?search_query=expressjs+tutorial", gfg: "https://www.geeksforgeeks.org/express-js/", project: "https://expressjs.com" }, "MongoDB": { yt: "https://www.youtube.com/results?search_query=mongodb+tutorial", gfg: "https://www.geeksforgeeks.org/mongodb-tutorial/", project: "https://www.mongodb.com/docs" }, "SQL": { yt: "https://www.youtube.com/results?search_query=sql+tutorial", gfg: "https://www.geeksforgeeks.org/sql-tutorial/", project: "https://sqlzoo.net" }, "REST API": { yt: "https://www.youtube.com/results?search_query=REST+API+tutorial", gfg: "https://www.geeksforgeeks.org/rest-api-introduction/", project: "https://restfulapi.net" }, "Docker": { yt: "https://www.youtube.com/results?search_query=docker+tutorial", gfg: "https://www.geeksforgeeks.org/docker-tutorial/", project: "https://docker-curriculum.com" } } },
+  "Full Stack": { icon: "🌐", desc: "Master frontend & backend.", skills: ["HTML","CSS","JavaScript","React","Node.js","MongoDB","Git"], resources: { "HTML": { yt: "https://www.youtube.com/results?search_query=HTML+complete+course", gfg: "https://geeksforgeeks.org/html-tutorial/", project: "https://frontendmentor.io" }, "CSS": { yt: "https://www.youtube.com/results?search_query=CSS+tutorial", gfg: "https://geeksforgeeks.org/css-tutorial/", project: "https://frontendmentor.io" }, "JavaScript": { yt: "https://www.youtube.com/results?search_query=JavaScript+tutorial", gfg: "https://geeksforgeeks.org/javascript/", project: "https://javascript30.com" }, "React": { yt: "https://www.youtube.com/results?search_query=React+tutorial", gfg: "https://geeksforgeeks.org/reactjs/", project: "https://react.dev" }, "Node.js": { yt: "https://www.youtube.com/results?search_query=nodejs+tutorial", gfg: "https://geeksforgeeks.org/nodejs/", project: "https://nodeschool.io" }, "MongoDB": { yt: "https://www.youtube.com/results?search_query=mongodb+tutorial", gfg: "https://geeksforgeeks.org/mongodb-tutorial/", project: "https://mongodb.com/docs" }, "Git": { yt: "https://www.youtube.com/results?search_query=Git+tutorial", gfg: "https://geeksforgeeks.org/git-tutorial/", project: "https://learngitbranching.js.org" } } },
+  "Data Analyst": { icon: "📊", desc: "Analyze data and find insights.", skills: ["Python","Pandas","SQL","Excel","Power BI","Statistics"], resources: { "Python": { yt: "https://www.youtube.com/results?search_query=python+tutorial", gfg: "https://geeksforgeeks.org/python-programming-language/", project: "https://hackerrank.com/domains/python" }, "Pandas": { yt: "https://www.youtube.com/results?search_query=pandas+tutorial", gfg: "https://geeksforgeeks.org/pandas-tutorial/", project: "https://kaggle.com/learn/pandas" }, "SQL": { yt: "https://www.youtube.com/results?search_query=sql+tutorial", gfg: "https://geeksforgeeks.org/sql-tutorial/", project: "https://sqlzoo.net" }, "Excel": { yt: "https://www.youtube.com/results?search_query=excel+tutorial", gfg: "https://geeksforgeeks.org/microsoft-excel-tutorial/", project: "https://chandoo.org" }, "Power BI": { yt: "https://www.youtube.com/results?search_query=power+bi+tutorial", gfg: "https://geeksforgeeks.org/power-bi/", project: "https://powerbi.microsoft.com" }, "Statistics": { yt: "https://www.youtube.com/results?search_query=statistics+tutorial", gfg: "https://geeksforgeeks.org/statistics/", project: "https://khanacademy.org" } } },
+  "AI / ML Engineer": { icon: "🤖", desc: "Build intelligent systems.", skills: ["Python","Pandas","NumPy","Scikit-learn","TensorFlow","Math/Stats"], resources: { "Python": { yt: "https://www.youtube.com/results?search_query=python+tutorial", gfg: "https://geeksforgeeks.org/python-programming-language/", project: "https://hackerrank.com" }, "Pandas": { yt: "https://www.youtube.com/results?search_query=pandas+tutorial", gfg: "https://geeksforgeeks.org/pandas-tutorial/", project: "https://kaggle.com" }, "NumPy": { yt: "https://www.youtube.com/results?search_query=numpy+tutorial", gfg: "https://geeksforgeeks.org/numpy-tutorial/", project: "https://numpy.org" }, "Scikit-learn": { yt: "https://www.youtube.com/results?search_query=sklearn+tutorial", gfg: "https://geeksforgeeks.org/machine-learning/", project: "https://scikit-learn.org" }, "TensorFlow": { yt: "https://www.youtube.com/results?search_query=tensorflow+tutorial", gfg: "https://geeksforgeeks.org/introduction-to-tensorflow/", project: "https://tensorflow.org" }, "Math/Stats": { yt: "https://www.youtube.com/results?search_query=statistics+for+machine+learning", gfg: "https://geeksforgeeks.org/machine-learning/", project: "https://khanacademy.org" } } },
+  "DevOps Engineer": { icon: "🔧", desc: "Automate and scale apps.", skills: ["Linux","Docker","Kubernetes","CI/CD","AWS","Bash"], resources: { "Linux": { yt: "https://www.youtube.com/results?search_query=linux+tutorial", gfg: "https://geeksforgeeks.org/linux-tutorial/", project: "https://linuxjourney.com" }, "Docker": { yt: "https://www.youtube.com/results?search_query=docker+tutorial", gfg: "https://geeksforgeeks.org/docker-tutorial/", project: "https://docker-curriculum.com" }, "Kubernetes": { yt: "https://www.youtube.com/results?search_query=kubernetes+tutorial", gfg: "https://geeksforgeeks.org/kubernetes-tutorial/", project: "https://kubernetes.io" }, "CI/CD": { yt: "https://www.youtube.com/results?search_query=cicd+pipeline+tutorial", gfg: "https://geeksforgeeks.org/ci-cd-pipeline/", project: "https://docs.github.com/en/actions" }, "AWS": { yt: "https://www.youtube.com/results?search_query=aws+tutorial", gfg: "https://geeksforgeeks.org/aws-tutorial/", project: "https://aws.amazon.com/getting-started/" }, "Bash": { yt: "https://www.youtube.com/results?search_query=bash+scripting+tutorial", gfg: "https://geeksforgeeks.org/bash-scripting-introduction-to-bash-and-bash-scripting/", project: "https://overthewire.org" } } }
+};
+
+async function loadCourses() {
+  allCourses = COURSES_FALLBACK;
+  renderCourses();
+}
+
+function renderCourses() {
+  const grid = document.getElementById('courseGrid'); grid.innerHTML = '';
+  for (const [name, data] of Object.entries(allCourses)) {
+    const div = document.createElement('div'); div.className = 'glass course-card'; div.style.cursor = 'pointer';
+    div.innerHTML = `<span class="course-icon">${data.icon}</span><h3>${name}</h3><p>${data.desc}</p><div class="skill-pills">${data.skills.map(s => `<span class="pill">${s}</span>`).join('')}</div><button class="btn btn-primary" onclick="openCourse('${name}')">Select Path →</button>`;
+    grid.appendChild(div);
+  }
+}
+
+function openCourse(name) {
+  selectedCourse = name; localStorage.setItem('sgpCourse', name);
+  const course = allCourses[name];
+  document.getElementById('skillSelector').style.display = 'block';
+  document.getElementById('selectorTitle').textContent = `${course.icon} ${name} — Rate Your Skills`;
+  document.getElementById('skillList').innerHTML = '';
+  course.skills.forEach(skill => {
+    const isChecked = selectedSkills.includes(skill);
+    const div = document.createElement('div'); div.className = 'skill-check' + (isChecked ? ' checked' : ''); div.id = 'check_' + skill;
+    div.innerHTML = `<label><div class="check-box"></div><input type="checkbox" ${isChecked ? 'checked' : ''}><span style="font-weight:500;">${skill}</span></label><span style="color:var(--muted);font-size:12px;font-family:'Space Mono',monospace;">Self-rate</span>`;
+    div.addEventListener('click', () => { const inp = div.querySelector('input'); inp.checked = !inp.checked; toggleSkill(skill, inp.checked); });
+    document.getElementById('skillList').appendChild(div);
+  });
+  document.getElementById('skillSelector').scrollIntoView({ behavior: 'smooth' });
+  toast(`${course.icon} ${name} selected!`, 'info');
+}
+
+function toggleSkill(skill, force) {
+  const div = document.getElementById('check_' + skill);
+  if (force !== undefined) { if (force && !selectedSkills.includes(skill)) selectedSkills.push(skill); if (!force) selectedSkills = selectedSkills.filter(s => s !== skill); }
+  else { if (selectedSkills.includes(skill)) selectedSkills = selectedSkills.filter(s => s !== skill); else selectedSkills.push(skill); }
+  if (div) div.classList.toggle('checked', selectedSkills.includes(skill));
+  localStorage.setItem('sgpSkills', JSON.stringify(selectedSkills));
+}
+
+function analyze() {
+  if (!selectedCourse) { toast('⚠️ Pick a course first!', 'info'); return; }
+  const required = allCourses[selectedCourse].skills;
+  analysisPercent = Math.round((selectedSkills.filter(s => required.includes(s)).length / required.length) * 100);
+  localStorage.setItem('sgpPercent', analysisPercent);
+  if (currentUser) saveProgressLocally();
+  toast('🔥 Analysis complete! ' + analysisPercent + '% match', 'success');
+  setTimeout(() => showPage('dashboard'), 800);
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════
+function renderDashboard() {
+  if (!selectedCourse && analysisPercent === 0 && selectedSkills.length === 0) {
+    document.getElementById('dashboardEmpty').style.display = 'block';
+    document.getElementById('dashboardContent').style.display = 'none'; return;
+  }
+  document.getElementById('dashboardEmpty').style.display = 'none';
+  document.getElementById('dashboardContent').style.display = 'block';
+  const pcw = document.getElementById('profileCardWrap');
+  if (currentUser) {
+    const i = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    pcw.innerHTML = `<div class="profile-card"><div class="profile-avatar">${i}</div><div><div class="profile-name">${currentUser.name}</div><div class="profile-email">${currentUser.email}</div><span class="profile-badge">💾 Progress Saved Locally</span></div></div>`;
+    document.getElementById('cloudSaveBanner').style.display = 'flex';
+  } else {
+    pcw.innerHTML = `<div style="background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.2);border-radius:12px;padding:14px 20px;font-size:13px;color:var(--cyan);margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;"><span>💡 Login to save your progress!</span><button class="btn btn-primary" style="padding:8px 18px;font-size:12px;" onclick="openModal()">Login Free →</button></div>`;
+    document.getElementById('cloudSaveBanner').style.display = 'none';
+  }
+  const course = allCourses[selectedCourse]; if (!course) return;
+  const required = course.skills, missing = required.filter(s => !selectedSkills.includes(s)), done = required.filter(s => selectedSkills.includes(s));
+  document.getElementById('bigScore').textContent = analysisPercent + '%';
+  document.getElementById('dashBar').style.width = analysisPercent + '%';
+  document.getElementById('missingText').textContent = missing.length ? 'Missing: ' + missing.join(', ') : '🏆 All skills complete!';
+  const badge = document.getElementById('statusBadge');
+  if (analysisPercent >= 80) badge.innerHTML = `<span class="status-badge badge-fire"><span class="dot dot-green"></span>Industry Ready 🔥</span>`;
+  else if (analysisPercent >= 50) badge.innerHTML = `<span class="status-badge badge-warn"><span class="dot dot-orange"></span>Almost There ⚡</span>`;
+  else badge.innerHTML = `<span class="status-badge badge-danger"><span class="dot dot-red"></span>High Skill Gap 🚨</span>`;
+  document.getElementById('doneChips').innerHTML = done.map(s => `<span class="skill-chip chip-done">✓ ${s}</span>`).join('') || '<span style="color:var(--muted)">No matching skills yet</span>';
+  document.getElementById('missChips').innerHTML = missing.map(s => `<span class="skill-chip chip-miss">✗ ${s}</span>`).join('') || '<span style="color:var(--green)">All skills match! 🎉</span>';
+  setTimeout(() => {
+    if (radarChartInst) radarChartInst.destroy();
+    radarChartInst = new Chart(document.getElementById('radarChart').getContext('2d'), { type: 'radar', data: { labels: required, datasets: [{ label: 'Your Skills', data: required.map(s => selectedSkills.includes(s) ? 10 : 2), backgroundColor: 'rgba(0,255,136,0.1)', borderColor: '#00ff88', pointBackgroundColor: '#00ff88', pointRadius: 5 }, { label: 'Required', data: required.map(() => 10), backgroundColor: 'rgba(0,229,255,0.05)', borderColor: 'rgba(0,229,255,0.4)', borderDash: [5, 5], pointRadius: 3 }] }, options: { responsive: true, plugins: { legend: { labels: { color: '#6b7db3', font: { family: 'Space Mono', size: 11 } } } }, scales: { r: { angleLines: { color: 'rgba(255,255,255,0.06)' }, grid: { color: 'rgba(255,255,255,0.06)' }, pointLabels: { color: '#e8f0fe', font: { size: 12 } }, ticks: { display: false }, min: 0, max: 10 } } } });
+    const demands = { HTML: 60, CSS: 65, JavaScript: 95, React: 92, TypeScript: 85, Git: 88, "Node.js": 88, Express: 75, MongoDB: 72, SQL: 90, "REST API": 85, Docker: 80, Python: 98, Pandas: 82, NumPy: 78, "Scikit-learn": 75, TensorFlow: 70, Excel: 65, "Power BI": 68, Statistics: 72, "CI/CD": 78, Kubernetes: 75, AWS: 90, Linux: 72, Bash: 65, "Math/Stats": 70 };
+    if (barChartInst) barChartInst.destroy();
+    barChartInst = new Chart(document.getElementById('barChart').getContext('2d'), { type: 'bar', data: { labels: required, datasets: [{ label: 'Market Demand (%)', data: required.map(s => demands[s] || 70), backgroundColor: required.map(s => selectedSkills.includes(s) ? 'rgba(0,255,136,0.6)' : 'rgba(255,71,87,0.4)'), borderColor: required.map(s => selectedSkills.includes(s) ? '#00ff88' : '#ff4757'), borderWidth: 1, borderRadius: 8 }] }, options: { responsive: true, plugins: { legend: { labels: { color: '#6b7db3', font: { family: 'Space Mono', size: 11 } } } }, scales: { x: { ticks: { color: '#6b7db3', font: { family: 'Space Mono', size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' } }, y: { ticks: { color: '#6b7db3' }, grid: { color: 'rgba(255,255,255,0.04)' }, min: 0, max: 100 } } } });
+  }, 100);
+  renderRoadmap(missing, course);
+}
+
+function renderRoadmap(missing, course) {
+  const c = document.getElementById('roadmapSteps'); c.innerHTML = '';
+  if (!missing || !missing.length) { c.innerHTML = `<div class="glass" style="text-align:center;padding:40px;"><span style="font-size:50px">🏆</span><h3 style="font-family:'Syne',sans-serif;margin-top:16px;">Perfect Score! You're Ready.</h3></div>`; return; }
+  const res = course?.resources || {};
+  missing.forEach((skill, i) => {
+    const r = res[skill] || {}; const div = document.createElement('div'); div.className = 'roadmap-step';
+    div.innerHTML = `<div class="step-num">${i + 1}</div><div class="step-content"><h4>Learn ${skill}</h4><p>Master ${skill} to boost your readiness by ${Math.round(100 / (course?.skills?.length || 6))}%</p><div class="step-links"><a class="step-link link-yt" href="${r.yt || '#'}" target="_blank" rel="noopener">▶ YouTube</a><a class="step-link link-gfg" href="${r.gfg || '#'}" target="_blank" rel="noopener">📖 GeeksForGeeks</a><a class="step-link link-proj" href="${r.project || '#'}" target="_blank" rel="noopener">🛠 Practice</a></div></div>`;
+    c.appendChild(div);
+  });
+}
+
+// ══════════════════════════════════════════
+// FIX 1: INTERNSHIPS — apply button as proper <a> tag, no card-level onclick
+// ══════════════════════════════════════════
+const INTERNSHIPS = [
+  { company: "Google", emoji: "🌈", role: "Software Engineering Intern", skills: ["JavaScript","Python","React","Git"], stipend: "₹2,50,000/mo", location: "Bangalore/Remote", link: "https://careers.google.com/jobs/results/?q=intern&employment_type=INTERN", tip: "Search 'SWE Intern India' on Google Careers" },
+  { company: "Microsoft", emoji: "🪟", role: "Full Stack Dev Intern", skills: ["JavaScript","TypeScript","React","Node.js"], stipend: "₹2,00,000/mo", location: "Hyderabad/Remote", link: "https://jobs.careers.microsoft.com/global/en/search?q=intern&lc=India", tip: "Filter by Internship on Microsoft Careers" },
+  { company: "Amazon", emoji: "📦", role: "SDE Intern", skills: ["Python","SQL","Node.js","AWS"], stipend: "₹1,80,000/mo", location: "Hyderabad", link: "https://www.amazon.jobs/en/search?base_query=intern&loc_query=India&job_type=intern", tip: "Filter by Internship in India" },
+  { company: "Flipkart", emoji: "🛒", role: "Data Analyst Intern", skills: ["Python","SQL","Excel","Pandas"], stipend: "₹80,000/mo", location: "Bangalore", link: "https://www.flipkartcareers.com/#!/joblist", tip: "Search 'intern' on Flipkart Careers" },
+  { company: "Infosys", emoji: "🏢", role: "Web Dev Intern", skills: ["HTML","CSS","JavaScript","React"], stipend: "₹25,000/mo", location: "Pan India", link: "https://career.infosys.com/", tip: "Apply via InfyTQ or Infosys Careers portal" },
+  { company: "Razorpay", emoji: "💳", role: "Backend Intern", skills: ["Node.js","MongoDB","REST API","Docker"], stipend: "₹60,000/mo", location: "Bangalore/Remote", link: "https://razorpay.com/jobs/#jobs", tip: "Browse Engineering roles on Razorpay Jobs" },
+  { company: "CRED", emoji: "💜", role: "ML Intern", skills: ["Python","TensorFlow","Pandas","NumPy"], stipend: "₹80,000/mo", location: "Bangalore", link: "https://careers.cred.club/#open-positions", tip: "Browse open intern positions on CRED Careers" },
+  { company: "Swiggy", emoji: "🍔", role: "SDE Intern", skills: ["JavaScript","React","Node.js","SQL"], stipend: "₹70,000/mo", location: "Bangalore", link: "https://careers.swiggy.com/", tip: "Look under Engineering section" },
+  { company: "Zomato", emoji: "🍕", role: "Backend Intern", skills: ["Python","SQL","REST API","MongoDB"], stipend: "₹60,000/mo", location: "Gurgaon/Remote", link: "https://www.zomato.com/careers", tip: "Check Engineering → Intern roles" },
+  { company: "Internshala", emoji: "🎓", role: "Any Tech Internship", skills: ["HTML","CSS","JavaScript","Python"], stipend: "Varies", location: "Pan India/Remote", link: "https://internshala.com/internships/computer-science-engineering-internship/", tip: "1000s of tech internships here" },
+  { company: "LinkedIn Jobs", emoji: "💼", role: "Find Any Internship", skills: ["Any"], stipend: "Varies", location: "Pan India/Remote", link: "https://www.linkedin.com/jobs/search/?keywords=software%20intern&location=India&f_JT=I", tip: "Best place to search & apply directly" }
+];
+
+function renderInternships() {
+  const grid = document.getElementById('internGrid'); grid.innerHTML = '';
+  const sorted = [...INTERNSHIPS].map(i => {
+    const pct = i.skills[0] === 'Any' ? 85 : Math.round((selectedSkills.filter(s => i.skills.includes(s)).length / i.skills.length) * 100);
+    return { ...i, pct };
+  }).sort((a, b) => b.pct - a.pct);
+
+  sorted.forEach(intern => {
+    const color = intern.pct >= 75 ? '#00ff88' : intern.pct >= 50 ? '#ff9f43' : '#ff4757';
+    const circ = 150, offset = circ - (circ * intern.pct / 100);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'glass intern-card';
+    // Important: no onclick on wrapper so clicks on apply-btn propagate normally
+    wrapper.innerHTML = `
+      <div class="intern-logo">${intern.emoji}</div>
+      <div class="match-ring">
+        <svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="4"/><circle cx="25" cy="25" r="20" fill="none" stroke="${color}" stroke-width="4" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round"/></svg>
+        <div class="match-pct" style="color:${color}">${intern.pct}%</div>
+      </div>
+      <div class="intern-name">${intern.company}</div>
+      <div class="intern-role">${intern.role}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;font-family:'Space Mono',monospace;">📍 ${intern.location} &nbsp; 💰 ${intern.stipend}</div>
+      <div style="font-size:12px;color:var(--cyan);margin-bottom:12px;">💡 ${intern.tip}</div>
+      <div class="intern-tags">${intern.skills[0] === 'Any' ? '<span class="intern-tag match">Any Tech Skills</span>' : intern.skills.map(s => `<span class="intern-tag${selectedSkills.includes(s) ? ' match' : ''}">${s}</span>`).join('')}</div>
+    `;
+    // Apply button added separately so it's a real anchor with no interference
+    const applyBtn = document.createElement('a');
+    applyBtn.href = intern.link;
+    applyBtn.target = '_blank';
+    applyBtn.rel = 'noopener noreferrer';
+    applyBtn.className = 'apply-btn';
+    applyBtn.textContent = `Apply on ${intern.company} →`;
+    applyBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      toast(`Opening ${intern.company} careers page...`, 'info');
+    });
+    wrapper.appendChild(applyBtn);
+    grid.appendChild(wrapper);
+  });
+}
+
+// ══════════════════════════════════════════
+// FIX 2: RESUME — full edit + AI generates from user's input
+// ══════════════════════════════════════════
+const defaultProjectsMap = {
+  "Frontend Developer": [{ title: "Portfolio Website", tech: "HTML, CSS, JavaScript", desc: "Responsive personal portfolio with animations and 95+ Lighthouse score." }, { title: "React Todo App", tech: "React, localStorage", desc: "Full-featured task manager with drag-drop, filters, and React hooks." }],
+  "Backend Developer": [{ title: "REST API Server", tech: "Node.js, Express, MongoDB", desc: "Secure REST API with JWT auth, rate limiting, and Swagger docs." }, { title: "Real-time Chat App", tech: "Node.js, Socket.io", desc: "WebSocket group chat with rooms and typing indicators." }],
+  "Full Stack": [{ title: "E-Commerce Platform", tech: "React, Node.js, MongoDB", desc: "Full stack marketplace with Razorpay payments and admin dashboard." }, { title: "Skill Gap Analyzer", tech: "HTML, CSS, JS, Node.js", desc: "Web app analyzing skills and matching internship opportunities." }],
+  "Data Analyst": [{ title: "Sales Dashboard", tech: "Python, Power BI, SQL", desc: "Interactive dashboard from a Python ETL pipeline on 100K+ rows." }, { title: "Customer Churn Model", tech: "Python, Pandas, Scikit-learn", desc: "ML model with 87% accuracy predicting customer churn." }],
+  "AI / ML Engineer": [{ title: "Image Classifier CNN", tech: "Python, TensorFlow, NumPy", desc: "CNN with 94% accuracy on CIFAR-10, deployed via Flask API." }, { title: "NLP Sentiment Analyzer", tech: "Python, Transformers", desc: "BERT pipeline for product reviews on Hugging Face Spaces." }],
+  "DevOps Engineer": [{ title: "CI/CD Pipeline", tech: "GitHub Actions, Docker, K8s", desc: "Automated pipeline with zero-downtime deployments." }, { title: "Monitoring Stack", tech: "Prometheus, Grafana, Bash", desc: "Full observability with Grafana dashboards and PagerDuty alerts." }]
+};
+
+function renderResume() {
+  if (!selectedCourse) { document.getElementById('resumeEmpty').style.display = 'block'; document.getElementById('resumeContent').style.display = 'none'; return; }
+  document.getElementById('resumeEmpty').style.display = 'none';
+  document.getElementById('resumeContent').style.display = 'block';
+  if (userProjects.length === 0) userProjects = (defaultProjectsMap[selectedCourse] || defaultProjectsMap['Full Stack']).map((p, i) => ({ ...p, id: i }));
+  // Pre-fill title with course name if empty
+  const titleEl = document.getElementById('rTitle');
+  if (titleEl && !titleEl.value) titleEl.value = selectedCourse;
+  // Pre-fill email from logged in user
+  const emailEl = document.getElementById('rEmail');
+  if (emailEl && !emailEl.value && currentUser) emailEl.value = currentUser.email;
+  const nameEl = document.getElementById('rName');
+  if (nameEl && !nameEl.value && currentUser) nameEl.value = currentUser.name;
+  renderProjectInputs();
+  renderSkillTags();
+  liveResume();
+}
+
+function renderSkillTags() {
+  const w = document.getElementById('skillTagsEdit'); if (!w) return;
+  const allEditableSkills = [...selectedSkills, ...customSkills];
+  w.innerHTML = allEditableSkills.map(s => `
+    <span class="skill-tag-wrap">
+      ${s}
+      <span class="skill-tag-remove" onclick="removeSkillTag('${s}')">✕</span>
+    </span>
+  `).join('');
+}
+
+function removeSkillTag(skill) {
+  selectedSkills = selectedSkills.filter(s => s !== skill);
+  customSkills = customSkills.filter(s => s !== skill);
+  localStorage.setItem('sgpSkills', JSON.stringify(selectedSkills));
+  renderSkillTags();
+  liveResume();
+}
+
+function addCustomSkill() {
+  const inp = document.getElementById('rExtraSkillInput');
+  const val = inp.value.trim();
+  if (!val) return;
+  const skills = val.split(',').map(s => s.trim()).filter(Boolean);
+  skills.forEach(s => { if (!customSkills.includes(s) && !selectedSkills.includes(s)) customSkills.push(s); });
+  inp.value = '';
+  renderSkillTags();
+  liveResume();
+  toast('Skill added!', 'success');
+}
+
+function renderProjectInputs() {
+  const c = document.getElementById('projectsEdit'); if (!c) return; c.innerHTML = '';
+  userProjects.forEach((p, idx) => {
+    const div = document.createElement('div');
+    div.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-size:12px;font-family:'Space Mono',monospace;color:var(--cyan);">PROJECT ${idx + 1}</span>
+        <button onclick="removeProject(${idx})" style="background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.2);color:var(--red);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:12px;">✕ Remove</button>
+      </div>
+      <div class="rfield"><label>Project Title</label><input type="text" value="${p.title || ''}" placeholder="My Awesome Project" oninput="updateProject(${idx},'title',this.value)"></div>
+      <div class="rfield"><label>Tech Stack</label><input type="text" value="${p.tech || ''}" placeholder="React, Node.js, MongoDB" oninput="updateProject(${idx},'tech',this.value)"></div>
+      <div class="rfield"><label>What it does / your impact</label><input type="text" value="${p.desc || ''}" placeholder="Built a... that achieved... using..." oninput="updateProject(${idx},'desc',this.value)"></div>
+    `;
+    c.appendChild(div);
+  });
+}
+
+function addProject() { userProjects.push({ title: 'New Project', tech: '', desc: 'Describe what you built.', id: Date.now() }); renderProjectInputs(); liveResume(); toast('Project added!', 'info'); }
+function removeProject(idx) { userProjects.splice(idx, 1); renderProjectInputs(); liveResume(); }
+function updateProject(idx, field, val) { userProjects[idx][field] = val; liveResume(); }
+
+// AI generates summary from user's actual filled-in info
+function aiGenerateSummary() {
+  const name = document.getElementById('rName')?.value?.trim() || '';
+  const title = document.getElementById('rTitle')?.value?.trim() || selectedCourse || 'Software Developer';
+  const allSkills = [...selectedSkills, ...customSkills];
+  const topSkills = allSkills.slice(0, 4).join(', ') || 'web technologies';
+  const univ = document.getElementById('rUniv')?.value?.trim() || '';
+  const year = document.getElementById('rYear')?.value?.trim() || '';
+
+  let summary = '';
+  if (name) summary += `${name} is a `;
+  else summary += 'A passionate ';
+  summary += `${title} `;
+  if (univ) summary += `studying at ${univ}${year ? ' (' + year + ')' : ''}, `;
+  summary += `with hands-on experience in ${topSkills}. `;
+  summary += `Passionate about building impactful products and eager to apply technical skills in a challenging internship role.`;
+
+  const el = document.getElementById('rSummary');
+  if (el) { el.value = summary; liveResume(); }
+  toast('✨ Summary generated!', 'success');
+}
+
+// liveResume: AI builds from whatever the user has typed
+function liveResume() {
+  const g = id => document.getElementById(id)?.value?.trim() || '';
+  const name = g('rName') || 'Your Name';
+  const title = g('rTitle') || selectedCourse || 'Software Developer';
+  const email = g('rEmail') || 'your@email.com';
+  const phone = g('rPhone'), linkedin = g('rLinkedin'), github = g('rGithub');
+  const degree = g('rDegree') || 'B.Tech — Computer Science';
+  const univ = g('rUniv') || 'Your University';
+  const year = g('rYear') || '2022–2026';
+  const cgpa = g('rCgpa');
+  const achievements = g('rAchievements');
+
+  const allSkills = [...selectedSkills, ...customSkills];
+  const topSkills = allSkills.slice(0, 4).join(', ') || 'web technologies';
+
+  // Summary: use user's typed text, otherwise build from their actual inputs
+  const typedSummary = g('rSummary');
+  let autoSummary = '';
+  if (name !== 'Your Name') autoSummary += `${name} is a `;
+  else autoSummary += 'A passionate ';
+  autoSummary += `${title}`;
+  if (univ !== 'Your University') autoSummary += ` studying at ${univ}`;
+  autoSummary += `, with hands-on experience in ${topSkills}. Eager to apply technical skills in a challenging internship and contribute to real-world products.`;
+  const finalSummary = typedSummary || autoSummary;
+
+  const achLines = achievements ? achievements.split('\n').filter(Boolean) : ['Solved 100+ problems on LeetCode', 'Completed 5+ project-based certifications', 'Active open-source contributor on GitHub'];
+  const certs = [
+    allSkills.includes('React') ? 'Meta Front-End Developer Certificate' : '',
+    allSkills.includes('Python') ? 'Google Data Analytics Certificate' : '',
+    allSkills.includes('AWS') ? 'AWS Certified Cloud Practitioner' : '',
+    allSkills.includes('Docker') ? 'Docker Certified Associate' : '',
+    'SkillGap Pro+ Career Readiness Certificate'
+  ].filter(Boolean);
+
+  const contact = [email, phone, linkedin, github].filter(Boolean);
+
+  // ATS Score — based on how many fields are filled
+  let score = 40;
+  if (name !== 'Your Name') score += 8;
+  if (g('rEmail')) score += 5;
+  if (phone) score += 4;
+  if (linkedin) score += 5;
+  if (github) score += 5;
+  if (g('rDegree')) score += 4;
+  if (typedSummary) score += 8;
+  score += Math.min(allSkills.length * 2, 12);
+  score += Math.min(userProjects.length * 3, 9);
+  score = Math.min(score, 97);
+
+  const el = document.getElementById('resumeScore'); if (el) el.textContent = score;
+  const bar = document.getElementById('atsBar'); if (bar) bar.style.width = score + '%';
+
+  const doc = document.getElementById('resumeDoc'); if (!doc) return;
+  doc.innerHTML = `
+    <div class="resume-header-block">
+      <div class="resume-name">${name}</div>
+      <div class="resume-role-tag">${title} | Open to Internships</div>
+      <div style="font-size:12px;color:#555;margin-top:6px;">${contact.join(' &nbsp;|&nbsp; ')}</div>
+    </div>
+    <div class="resume-section">
+      <div class="resume-section-title">Professional Summary</div>
+      <p style="font-size:13px;color:#333;line-height:1.75;">${finalSummary}</p>
+    </div>
+    ${allSkills.length ? `<div class="resume-section"><div class="resume-section-title">Technical Skills</div><div class="resume-skill-list">${allSkills.map(s => `<span class="resume-skill-chip">${s}</span>`).join('')}</div></div>` : ''}
+    <div class="resume-section">
+      <div class="resume-section-title">Projects</div>
+      ${userProjects.map(p => `<div class="resume-item"><div style="display:flex;justify-content:space-between;align-items:baseline;"><div class="resume-item-title">${p.title}</div>${p.tech ? `<div style="font-size:11px;color:#00aa55;font-family:'Space Mono',monospace;">${p.tech}</div>` : ''}</div><p style="font-size:13px;color:#444;line-height:1.6;margin-top:3px;">${p.desc}</p></div>`).join('')}
+    </div>
+    <div class="resume-section">
+      <div class="resume-section-title">Education</div>
+      <div class="resume-item">
+        <div style="display:flex;justify-content:space-between;"><div class="resume-item-title">${degree}</div><div style="font-size:12px;color:#666;">${year}</div></div>
+        <div class="resume-item-sub">${univ}${cgpa ? ' &nbsp;|&nbsp; CGPA: ' + cgpa : ''}</div>
+      </div>
+    </div>
+    <div class="resume-section">
+      <div class="resume-section-title">Achievements</div>
+      <div class="resume-item">${achLines.map(a => `<p style="font-size:13px;color:#444;line-height:1.8;">• ${a.replace(/^[•\-]\s*/, '')}</p>`).join('')}</div>
+    </div>
+    <div class="resume-section">
+      <div class="resume-section-title">Certifications</div>
+      <div class="resume-item">${certs.map(c => `<p style="font-size:13px;color:#444;line-height:1.8;">• ${c}</p>`).join('')}</div>
+    </div>
+    <div style="margin-top:16px;padding-top:12px;border-top:2px solid #00cc6a;font-size:10px;color:#aaa;text-align:center;font-family:'Space Mono',monospace;">
+      ATS Optimized &nbsp;|&nbsp; Keywords: ${allSkills.join(', ')} &nbsp;|&nbsp; Score: ${score}/100
+    </div>
+  `;
+}
+
+function downloadResume() {
+  const name = document.getElementById('rName')?.value || 'Resume';
+  const blob = new Blob([document.getElementById('resumeDoc').innerText], { type: 'text/plain' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = name.replace(/ /g, '_') + '_Resume.txt'; a.click();
+  toast('Resume downloaded!', 'success');
+}
+
+function printResume() {
+  const doc = document.getElementById('resumeDoc').innerHTML;
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>Resume</title><style>body{font-family:Georgia,serif;max-width:750px;margin:30px auto;color:#111;font-size:13px;}.resume-header-block{border-bottom:3px solid #00cc6a;padding-bottom:14px;margin-bottom:18px;}.resume-name{font-size:28px;font-weight:800;}.resume-role-tag{color:#00aa55;font-size:14px;font-weight:600;margin:4px 0;}.resume-section{margin-bottom:16px;}.resume-section-title{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#00aa55;font-weight:700;margin-bottom:8px;border-bottom:1px solid #eee;padding-bottom:4px;}.resume-skill-list{display:flex;flex-wrap:wrap;gap:5px;}.resume-skill-chip{padding:3px 10px;background:#f0faf5;border:1px solid #b6e6d0;border-radius:100px;font-size:11px;color:#0a7a3e;font-weight:600;}.resume-item{margin-bottom:12px;}.resume-item-title{font-size:14px;font-weight:700;}.resume-item-sub{font-size:12px;color:#666;margin-bottom:4px;}@media print{body{margin:0;}}</style></head><body>${doc}</body></html>`);
+  win.document.close();
+  setTimeout(() => { win.focus(); win.print(); }, 400);
+  toast('Print dialog opened!', 'success');
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+function countUp() {
+  document.querySelectorAll('[data-count]').forEach(el => {
+    const target = parseInt(el.getAttribute('data-count')); let c = 0;
+    const step = Math.ceil(target / 40);
+    const timer = setInterval(() => {
+      c = Math.min(c + step, target);
+      el.textContent = c + (el.closest('.stat-item').querySelector('.stat-label').textContent.includes('%') ? '%' : '+');
+      if (c >= target) clearInterval(timer);
+    }, 40);
+  });
+}
+
+function heroType() {
+  const words = ['Skill Gap.', 'Career Path.', 'Future.']; let wi = 0, ci = 0, del = false;
+  const el = document.getElementById('heroTyping');
+  setInterval(() => {
+    const w = words[wi];
+    if (!del && ci <= w.length) { el.textContent = w.slice(0, ci++); }
+    else if (del && ci >= 0) { el.textContent = w.slice(0, ci--); }
+    if (ci > w.length) del = true;
+    if (ci < 0) { del = false; wi = (wi + 1) % words.length; }
+  }, 120);
+}
+
+(async function init() {
+  updateNavUser();
+  heroType();
+  setTimeout(countUp, 500);
+  await loadCourses();
+  const sc = localStorage.getItem('sgpCourse'); if (sc) selectedCourse = sc;
+  // If user is already logged in from a previous session, restore their progress
+  if (currentUser) {
+    const saved = JSON.parse(localStorage.getItem('sgpProgress_' + currentUser.id) || '{}');
+    if (saved.selectedCourse) { selectedCourse = saved.selectedCourse; localStorage.setItem('sgpCourse', selectedCourse); }
+    if (saved.selectedSkills?.length) { selectedSkills = saved.selectedSkills; localStorage.setItem('sgpSkills', JSON.stringify(selectedSkills)); }
+    if (saved.analysisPercent) { analysisPercent = saved.analysisPercent; localStorage.setItem('sgpPercent', analysisPercent); }
+  }
+})();
+</script>
+</body>
+</html>
